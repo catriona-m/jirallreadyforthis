@@ -37,16 +37,6 @@ func (p Project) ListIssues(jql string) ([]j.Issue, error) {
 		}
 	}
 
-	/*	client, err := p.NewClient()
-		if err != nil {
-			return nil, fmt.Errorf("creating jira client: %v: ", err)
-		}
-
-		issues, _, err := client.Issue.Search(jql, nil)
-		if err != nil {
-			return nil, fmt.Errorf("getting jira issues: %v: ", err)
-		}
-	*/
 	return issues, nil
 }
 
