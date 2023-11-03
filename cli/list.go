@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	c "github.com/gookit/color"
 	"github.com/jirallreadyforthis/lib/gh"
@@ -71,9 +72,12 @@ func (l List) ListJiraTickets() error {
 					ghClosedOrMerged = append(ghClosedOrMerged, s)
 				}
 			}
+
+			createdTime := time.Time(issue.Fields.Created)
+			date := strings.Split(createdTime.String(), " ")[0]
 			if len(ghClosedOrMerged) > 0 {
 				count++
-				c.Printf("\n\n<green>%s</>	%s\n", issue.Fields.Summary, l.getJiraHtmlUrl(issue.Key))
+				c.Printf("\n\n<green>%s\t%s\t%s</>\n", issue.Fields.Summary, l.getJiraHtmlUrl(issue.Key), date)
 				c.Printf("\t%s", strings.Join(ghClosedOrMerged, "\t\n\t"))
 			}
 		} else {
@@ -81,7 +85,7 @@ func (l List) ListJiraTickets() error {
 			c.Printf("\n\n<green>%s</>	%s\n", issue.Fields.Summary, l.getJiraHtmlUrl(issue.Key))
 		}
 	}
-	c.Info.Printf("Finished listing %d issues\n", count)
+	c.Info.Printf("\nFinished listing %d issues\n", count)
 	return nil
 }
 
@@ -108,7 +112,7 @@ func (l List) closedOrMerged(link string) string {
 		if strings.Contains(link, "issues") {
 			issue, err := repo.GetIssue(i)
 			if err != nil {
-				fmt.Printf("getting issue %s: %v\n", link, err)
+				c.Errorf("\n Error getting issue from extracted link %s: %v\n", link, err)
 				return closedOrMergedString
 			}
 
@@ -116,34 +120,36 @@ func (l List) closedOrMerged(link string) string {
 				if issue.IsPullRequest() {
 					merged, err := repo.PullRequestIsMerged(i)
 					if err != nil {
-						fmt.Printf("Error checking if pr is merged %s: %v\n", link, err)
+						c.Errorf("Error checking if pr is merged using extracted link %s: %v\n", link, err)
 						return closedOrMergedString
 					}
 
 					if merged {
-						closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s</>", issue.GetTitle(), link)
+						closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
+						closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", issue.GetTitle(), issue.GetHTMLURL(), closedDate)
 					}
-
-				} else if issue.GetState() == "Closed" {
-					closedOrMergedString = c.Sprintf("<lightRed>%s\t%s</>", issue.GetTitle(), link)
+				} else if issue.GetState() == "closed" {
+					closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
+					closedOrMergedString = c.Sprintf("<lightRed>%s\t%s\t%s</>", issue.GetTitle(), issue.GetHTMLURL(), closedDate)
 				}
 			}
 
 		} else if strings.Contains(link, "pull") {
 			merged, err := repo.PullRequestIsMerged(i)
 			if err != nil {
-				c.Errorf("Error checking if pr is merged %s: %v\n", link, err)
+				c.Errorf("Error checking if pr is merged using extracted link %s: %v\n", link, err)
 				return closedOrMergedString
 			}
 
 			pr, err := repo.GetPullRequest(i)
 			if err != nil {
-				c.Errorf("Error getting pr %s: %v", link, err)
+				c.Errorf("Error getting pr using extracted link %s: %v\n", link, err)
 				return closedOrMergedString
 			}
 
 			if merged {
-				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s</>", pr.GetTitle(), link)
+				closedDate := strings.Split(pr.GetClosedAt().String(), " ")[0]
+				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", pr.GetTitle(), pr.GetHTMLURL(), closedDate)
 			}
 		}
 	}
