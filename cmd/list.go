@@ -21,6 +21,7 @@ var listCmd = &cobra.Command{
 		customFields, _ := cmd.Flags().GetStringSlice("custom-fields")
 		userName, _ := cmd.Flags().GetString("user-name")
 		jql, _ := cmd.Flags().GetString("jql")
+		lastCommented, _ := cmd.Flags().GetInt("not-commented")
 		linked, _ := cmd.Flags().GetBool("linked")
 
 		// env vars
@@ -45,6 +46,7 @@ var listCmd = &cobra.Command{
 			Jql:          jql,
 			Linked:       linked,
 			GHToken:      ghToken,
+			NotCommented: lastCommented,
 		}
 		err := l.ListJiraTickets()
 		if err != nil {
@@ -57,9 +59,10 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().StringP("jira-url", "j", "", "The base jira url eg 'https://readyforthis.atlassian.net/'")
+	listCmd.Flags().StringP("jira-url", "j", "", "The base jira url eg 'https://readyforthis.atlassian.net/' HI")
 	listCmd.Flags().StringSliceP("custom-fields", "f", []string{}, "A list of custom fields to search for links in")
 	listCmd.Flags().StringP("user-name", "u", "", "User name associated with the jira token")
 	listCmd.Flags().StringP("jql", "", "", "Jql query string to filter issues")
+	listCmd.Flags().IntP("not-commented", "", 0, "Filter issues based on whether they have been commented on in a specified number of days.")
 	listCmd.Flags().BoolP("linked", "", true, "Only list jira issues with either github issues that are closed or pull requests that are merged. Defaults to true.")
 }

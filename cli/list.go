@@ -20,6 +20,7 @@ type List struct {
 	CustomFields []string
 	Linked       bool
 	GHToken      string
+	NotCommented int
 }
 
 func (l List) ListJiraTickets() error {
@@ -37,6 +38,23 @@ func (l List) ListJiraTickets() error {
 
 	count := 0
 	for _, issue := range issues {
+		issueWithComments, err := p.GetIssue(issue.ID)
+		if l.NotCommented > 0 {
+
+			if len(issueWithComments.Fields.Comments.Comments) > 0 {
+				lastComment := issueWithComments.Fields.Comments.Comments[len(issueWithComments.Fields.Comments.Comments)-1]
+				date, err := time.Parse("2006-01-02", strings.Split(lastComment.Created, "T")[0])
+				if err != nil {
+					return fmt.Errorf("parsing comment creation time: %v", err)
+				}
+
+				if !date.Before(time.Now().AddDate(0, 0, -l.NotCommented)) {
+					// found a comment after the specified time, so move to the next issue
+					continue
+				}
+			}
+		}
+
 		if l.Linked {
 			githubLinks := make([]string, 0)
 			if len(l.CustomFields) > 0 {
@@ -52,7 +70,6 @@ func (l List) ListJiraTickets() error {
 			githubLinks = append(githubLinks, findGithubLinks(issue.Fields.Description)...)
 
 			// search issue comments for links
-			issueWithComments, err := p.GetIssue(issue.ID)
 			if err != nil {
 				return err
 			}
