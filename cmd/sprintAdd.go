@@ -66,7 +66,7 @@ func init() {
 	sprintAddCmd.Flags().StringP("jql", "", "", "Jql query string to filter issues to add to the sprint")
 	sprintAddCmd.Flags().IntP("sprint-id", "", 0, "The id of the sprint to move issues to")
 	sprintAddCmd.Flags().StringSliceP("issue-keys", "", []string{}, "List of issue keys to add to the sprint")
-	sprintAddCmd.Flags().BoolP("dry-run", "", true, "Print a simulation of what is expected")
+	sprintAddCmd.Flags().BoolP("dry-run", "", true, "Print a simulation of what is expected without making actual changes")
 
 	sprintAddCmd.MarkFlagRequired("sprint-id")
 	sprintAddCmd.MarkFlagsMutuallyExclusive("issue-keys", "jql")

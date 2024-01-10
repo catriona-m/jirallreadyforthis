@@ -53,3 +53,32 @@ func (p Project) GetIssue(issueId string) (*j.Issue, error) {
 
 	return issue, nil
 }
+
+func (p Project) TransitionIssueStatus(issueId string, transitionID string) error {
+	client, err := p.NewClient()
+	if err != nil {
+		return fmt.Errorf("creating jira client: %v: ", err)
+	}
+
+	_, err = client.Issue.DoTransition(issueId, transitionID)
+
+	if err != nil {
+		return fmt.Errorf("transitioning issue id %s to status id %s : %v: ", issueId, transitionID, err)
+	}
+
+	return nil
+}
+
+func (p Project) GetPossibleIssueTransitions(issueId string) ([]j.Transition, error) {
+	client, err := p.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("creating jira client: %v: ", err)
+	}
+
+	transitions, _, err := client.Issue.GetTransitions(issueId)
+	if err != nil {
+		return nil, fmt.Errorf("getting possible issue transitions from id %s", issueId)
+	}
+
+	return transitions, nil
+}
