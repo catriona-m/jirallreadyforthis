@@ -94,12 +94,12 @@ func (l List) ListJiraTickets() error {
 			date := strings.Split(createdTime.String(), " ")[0]
 			if len(ghClosedOrMerged) > 0 {
 				count++
-				c.Printf("\n\n<green>%s\t%s\t%s</>\n", issue.Fields.Summary, l.getJiraHtmlUrl(issue.Key), date)
+				c.Printf("\n\n<green>%s\t%s\t%s</>\n", l.getJiraHtmlUrl(issue.Key), issue.Fields.Summary, date)
 				c.Printf("\t%s", strings.Join(ghClosedOrMerged, "\t\n\t"))
 			}
 		} else {
 			count++
-			c.Printf("\n\n<green>%s</>	%s\n", issue.Fields.Summary, l.getJiraHtmlUrl(issue.Key))
+			c.Printf("\n\n<green>%s</>	%s\n", l.getJiraHtmlUrl(issue.Key), issue.Fields.Summary)
 		}
 	}
 	c.Info.Printf("\nFinished listing %d issues\n", count)

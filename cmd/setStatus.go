@@ -22,7 +22,6 @@ var setStatusCmd = &cobra.Command{
 		jql, _ := cmd.Flags().GetString("jql")
 		issueKeys, _ := cmd.Flags().GetStringSlice("issue-keys")
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		statusId, _ := cmd.Flags().GetString("status-id")
 		transitions, _ := cmd.Flags().GetStringSlice("transitions")
 
 		// env vars
@@ -45,7 +44,6 @@ var setStatusCmd = &cobra.Command{
 			UserName:    userName,
 			Jql:         jql,
 			GHToken:     ghToken,
-			StatusId:    statusId,
 			IssueKeys:   issueKeys,
 			DryRun:      dryRun,
 			Transitions: transitions,
