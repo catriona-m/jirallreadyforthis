@@ -24,7 +24,6 @@ type List struct {
 }
 
 func (l List) ListJiraTickets() error {
-
 	p := jira.Project{
 		Token:    l.JiraToken,
 		UserName: l.UserName,
@@ -40,7 +39,6 @@ func (l List) ListJiraTickets() error {
 	for _, issue := range issues {
 		issueWithComments, err := p.GetIssue(issue.ID)
 		if l.NotCommented > 0 {
-
 			if len(issueWithComments.Fields.Comments.Comments) > 0 {
 				lastComment := issueWithComments.Fields.Comments.Comments[len(issueWithComments.Fields.Comments.Comments)-1]
 				date, err := time.Parse("2006-01-02", strings.Split(lastComment.Created, "T")[0])

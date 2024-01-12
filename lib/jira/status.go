@@ -7,7 +7,6 @@ import (
 )
 
 func (p Project) ListStatuses() ([]j.Status, error) {
-
 	client, err := p.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("creating jira client: %v: ", err)

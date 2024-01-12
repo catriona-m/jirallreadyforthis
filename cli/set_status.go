@@ -23,7 +23,6 @@ type SetStatus struct {
 }
 
 func (s SetStatus) SetStatus() error {
-
 	p := jira.Project{
 		Token:    s.JiraToken,
 		UserName: s.UserName,
@@ -95,7 +94,6 @@ func statusIdToNameMap(p jira.Project) (map[string]string, error) {
 }
 
 func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
-
 	if s.Debug {
 		fmt.Printf("attempting to transition status on issue %s\n", issue.Key)
 	}

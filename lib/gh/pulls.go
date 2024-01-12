@@ -3,11 +3,11 @@ package gh
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/go-github/v52/github"
 )
 
 func (r Repo) PullRequestIsMerged(prNumber int) (bool, error) {
-
 	client := r.NewClient()
 	isMerged, _, err := client.PullRequests.IsMerged(context.Background(), r.Owner, r.Name, prNumber)
 	if err != nil {
@@ -17,7 +17,6 @@ func (r Repo) PullRequestIsMerged(prNumber int) (bool, error) {
 }
 
 func (r Repo) GetPullRequest(prNumber int) (*github.PullRequest, error) {
-
 	client := r.NewClient()
 	pr, _, err := client.PullRequests.Get(context.Background(), r.Owner, r.Name, prNumber)
 	if err != nil {

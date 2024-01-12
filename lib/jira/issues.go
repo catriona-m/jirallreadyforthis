@@ -7,7 +7,6 @@ import (
 )
 
 func (p Project) ListIssues(jql string) ([]j.Issue, error) {
-
 	client, err := p.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("creating jira client: %v: ", err)

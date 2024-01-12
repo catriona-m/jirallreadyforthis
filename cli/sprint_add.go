@@ -19,7 +19,6 @@ type SprintAdd struct {
 }
 
 func (s SprintAdd) AddIssuesToSprint() error {
-
 	p := jira.Project{
 		Token:    s.JiraToken,
 		UserName: s.UserName,

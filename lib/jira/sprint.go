@@ -5,7 +5,6 @@ import (
 )
 
 func (p Project) AddToSprint(sprintId int, issueIds []string) error {
-
 	client, err := p.NewClient()
 	if err != nil {
 		return fmt.Errorf("creating jira client: %v: ", err)

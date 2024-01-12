@@ -11,7 +11,6 @@ type Project struct {
 }
 
 func (p Project) NewClient() (*j.Client, error) {
-
 	tp := j.BasicAuthTransport{
 		Username: p.UserName,
 		Password: p.Token,

@@ -52,7 +52,6 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			fmt.Sprintf("Error listing jira tickets: %v\n", err)
 		}
-
 	},
 }
 

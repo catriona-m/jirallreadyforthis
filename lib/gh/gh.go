@@ -40,7 +40,6 @@ func NewRepo(repo, token string) Repo {
 }
 
 func (t Token) NewClient() *github.Client {
-
 	userCacheDir, _ := os.UserCacheDir()
 	cache := diskcache.New(filepath.Join(userCacheDir, "autoReviewCache"))
 

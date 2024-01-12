@@ -5,9 +5,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/jirallreadyforthis/cli"
 	"github.com/spf13/viper"
-	"os"
 
 	"github.com/spf13/cobra"
 )
