@@ -21,26 +21,29 @@ var sprintAddCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("sprint-add called")
 
-		jiraUrl, _ := cmd.Flags().GetString("jira-url")
-		userName, _ := cmd.Flags().GetString("user-name")
+		// env vars
+		viper.AutomaticEnv()
+		jiraToken := viper.GetString("JIRA_TOKEN")
+		if jiraToken == "" {
+			fmt.Println("Missing required environment variable `JIRA_TOKEN`")
+			os.Exit(1)
+		}
+
+		ghToken := viper.GetString("GITHUB_TOKEN")
+		if ghToken == "" {
+			fmt.Println("Missing required environment variable `GITHUB_TOKEN`")
+			os.Exit(1)
+		}
+
+		jiraUrl := viper.GetString("JIRA_URL")
+		userName := viper.GetString("JIRA_USER")
+
+		jiraUrl, _ = cmd.Flags().GetString("jira-url")
+		userName, _ = cmd.Flags().GetString("user-name")
 		jql, _ := cmd.Flags().GetString("jql")
 		sprintId, _ := cmd.Flags().GetInt("sprint-id")
 		issueKeys, _ := cmd.Flags().GetStringSlice("issue-keys")
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
-
-		// env vars
-		viper.AutomaticEnv()
-		jiraToken := viper.GetString("JRFT_JIRA_TOKEN")
-		if jiraToken == "" {
-			fmt.Println("Missing required environment variable `JRFT_JIRA_TOKEN`")
-			os.Exit(1)
-		}
-
-		ghToken := viper.GetString("JRFT_GH_TOKEN")
-		if ghToken == "" {
-			fmt.Println("Missing required environment variable `JRFT_GH_TOKEN`")
-			os.Exit(1)
-		}
 
 		s := cli.SprintAdd{
 			JiraToken: jiraToken,
@@ -52,9 +55,20 @@ var sprintAddCmd = &cobra.Command{
 			IssueKeys: issueKeys,
 			DryRun:    dryRun,
 		}
+
+		if jiraUrl == "" {
+			fmt.Println("Missing required variable - please set environment variable `JIRA_URL or --jira-url`")
+			os.Exit(1)
+		}
+
+		if userName == "" {
+			fmt.Println("Missing required variable - please set environment variable `JIRA_USER or --user-name`")
+			os.Exit(1)
+		}
+
 		err := s.AddIssuesToSprint()
 		if err != nil {
-			fmt.Sprintf("error adding issues to sprint: %v\n", err)
+			fmt.Printf("error adding issues to sprint: %v\n\n", err)
 		}
 	},
 }
