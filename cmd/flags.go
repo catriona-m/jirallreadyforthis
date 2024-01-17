@@ -84,9 +84,9 @@ func GetFlags() FlagData {
 		DryRun:       viper.GetBool("dry-run"),
 		Transitions:  viper.GetStringSlice("transitions"),
 		Debug:        viper.GetBool("debug"),
-		SprintId:     viper.GetInt(""),
-		CustomFields: nil,
-		Linked:       false,
-		NotCommented: 0,
+		SprintId:     viper.GetInt("sprint-id"),
+		CustomFields: viper.GetStringSlice("custom-fields"),
+		Linked:       viper.GetBool("linked"),
+		NotCommented: viper.GetInt("not-commented"),
 	}
 }
