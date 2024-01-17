@@ -16,7 +16,6 @@ type SetStatus struct {
 	Jql         string
 	GHToken     string
 	IssueKeys   []string
-	StatusId    string
 	DryRun      bool
 	Transitions []string
 	Debug       bool
@@ -29,15 +28,6 @@ func (s SetStatus) SetStatus() error {
 		JiraUrl:  s.JiraUrl,
 	}
 
-	statuses, err := statusIdToNameMap(p)
-	if err != nil {
-		return err
-	}
-	_, ok := statuses[s.StatusId]
-	if !ok {
-		return fmt.Errorf("id %s is not a valid status id", s.StatusId)
-	}
-
 	count := 0
 	if len(s.IssueKeys) > 0 {
 		for _, issueKey := range s.IssueKeys {
@@ -46,7 +36,7 @@ func (s SetStatus) SetStatus() error {
 				return err
 			}
 			if s.DryRun {
-				fmt.Printf("setting issue (key %s id %s) to status ( %s)\n", issueKey, issue.ID, s.StatusId)
+				fmt.Printf("setting issue (key %s id %s) to new status\n", issueKey, issue.ID)
 			} else {
 				err = s.transitionIssue(*issue, p)
 				if err != nil {
@@ -63,7 +53,7 @@ func (s SetStatus) SetStatus() error {
 
 		for _, issue := range issues {
 			if s.DryRun {
-				fmt.Printf("setting issue (key %s id %s) to status (%s)\n", issue.Key, issue.ID, s.StatusId)
+				fmt.Printf("setting issue (key %s id %s) to new status\n", issue.Key, issue.ID)
 			} else {
 				err = s.transitionIssue(issue, p)
 				if err != nil {
@@ -77,20 +67,6 @@ func (s SetStatus) SetStatus() error {
 	c.Info.Printf("\n Finished updating the status on %d issues\n", count)
 
 	return nil
-}
-
-func statusIdToNameMap(p jira.Project) (map[string]string, error) {
-	statusIdToName := make(map[string]string, 0)
-
-	statuses, err := p.ListStatuses()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, status := range statuses {
-		statusIdToName[status.ID] = status.Name
-	}
-	return statusIdToName, nil
 }
 
 func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
