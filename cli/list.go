@@ -90,6 +90,7 @@ func (l List) ListJiraTickets() error {
 
 			createdTime := time.Time(issue.Fields.Created)
 			date := strings.Split(createdTime.String(), " ")[0]
+			ghClosedOrMerged = removeDuplicates(ghClosedOrMerged)
 			if len(ghClosedOrMerged) > 0 {
 				count++
 				c.Printf("\n\n<green>%s\t%s\t%s</>\n", l.getJiraHtmlUrl(issue.Key), issue.Fields.Summary, date)
