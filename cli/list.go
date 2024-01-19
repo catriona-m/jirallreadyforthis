@@ -141,11 +141,11 @@ func (l List) closedOrMerged(link string) string {
 
 					if merged {
 						closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
-						closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", issue.GetTitle(), issue.GetHTMLURL(), closedDate)
+						closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
 					}
 				} else if issue.GetState() == "closed" {
 					closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
-					closedOrMergedString = c.Sprintf("<lightRed>%s\t%s\t%s</>", issue.GetTitle(), issue.GetHTMLURL(), closedDate)
+					closedOrMergedString = c.Sprintf("<lightRed>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
 				}
 			}
 
@@ -164,7 +164,7 @@ func (l List) closedOrMerged(link string) string {
 
 			if merged {
 				closedDate := strings.Split(pr.GetClosedAt().String(), " ")[0]
-				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", pr.GetTitle(), pr.GetHTMLURL(), closedDate)
+				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", closedDate, pr.GetHTMLURL(), pr.GetTitle())
 			}
 		}
 	}
