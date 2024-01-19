@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/jirallreadyforthis/cli"
 	"github.com/spf13/cobra"
@@ -35,6 +36,7 @@ func Make() (*cobra.Command, error) {
 			err := l.ListJiraTickets()
 			if err != nil {
 				fmt.Printf("Error listing jira tickets: %v\n", err)
+				os.Exit(1)
 			}
 		},
 	})
@@ -61,6 +63,7 @@ func Make() (*cobra.Command, error) {
 			err := s.SetStatus()
 			if err != nil {
 				fmt.Printf("error setting issue statuses: %v\n\n", err)
+				os.Exit(1)
 			}
 		},
 	})
@@ -87,6 +90,7 @@ func Make() (*cobra.Command, error) {
 			err := s.AddIssuesToSprint()
 			if err != nil {
 				fmt.Printf("error adding issues to sprint: %v\n\n", err)
+				os.Exit(1)
 			}
 		},
 	})
