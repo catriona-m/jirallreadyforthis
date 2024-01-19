@@ -20,7 +20,7 @@ func Make() (*cobra.Command, error) {
 		Short: "Lists Jira issues based on flag inputs",
 		Long:  ``, // TODO
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("list called")
+			fmt.Println("Listing issues...")
 
 			f := GetFlags()
 			l := cli.List{
@@ -46,7 +46,7 @@ func Make() (*cobra.Command, error) {
 		Short: "Change the status on issues",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("setStatus called")
+			fmt.Println("Setting statuses....")
 
 			f := GetFlags()
 
@@ -73,7 +73,7 @@ func Make() (*cobra.Command, error) {
 		Short: "Add issues to a sprint",
 		Long:  `Add issues to a sprint based on input issue keys (eg 'IPL-000') or issues found with an input jql query`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("sprint-add called")
+			fmt.Println("Adding issues to sprint...")
 
 			f := GetFlags()
 			s := cli.SprintAdd{
