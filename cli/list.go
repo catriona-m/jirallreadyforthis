@@ -160,7 +160,7 @@ func (l List) getJiraHtmlUrl(issueKey string) string {
 }
 
 func findGithubLinks(text string) []string {
-	re := regexp.MustCompile("https://github\\.com/\\S+/\\S+/(?:pull|issues)/\\d+")
+	re := regexp.MustCompile("https://github\\.com/[\\w-]+/[\\w-]+/(?:pull|issues)/\\d+")
 	matches := re.FindAllString(text, -1)
 
 	links := make([]string, 0)
