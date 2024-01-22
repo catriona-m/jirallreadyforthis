@@ -32,6 +32,7 @@ func Make() (*cobra.Command, error) {
 				Linked:       f.Linked,
 				GHToken:      f.GHToken,
 				NotCommented: f.NotCommented,
+				ClosedWithin: f.ClosedWithin,
 			}
 			err := l.ListJiraTickets()
 			if err != nil {

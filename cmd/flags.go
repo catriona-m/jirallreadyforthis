@@ -21,6 +21,7 @@ type FlagData struct {
 	CustomFields []string
 	Linked       bool
 	NotCommented int
+	ClosedWithin int
 }
 
 func configureFlags(root *cobra.Command) error {
@@ -42,6 +43,7 @@ func configureFlags(root *cobra.Command) error {
 
 	pflags.IntVarP(&flags.NotCommented, "not-commented", "", 0, "Filter issues based on whether they have been commented on in a specified number of days.")
 	pflags.BoolVarP(&flags.Linked, "linked", "", true, "Only list jira issues with either github issues that are closed or pull requests that are merged. Defaults to true.")
+	pflags.IntVarP(&flags.NotCommented, "closed-within", "", 0, "Filter issues based on whether they have a linked github issue/pr that has been closed within a specified number of days.")
 
 	// binding map for viper/pflag -> env
 	m := map[string]string{
@@ -57,6 +59,7 @@ func configureFlags(root *cobra.Command) error {
 		"custom-fields": "",
 		"not-commented": "",
 		"linked":        "",
+		"closed-within": "",
 	}
 
 	for name, env := range m {
@@ -88,5 +91,6 @@ func GetFlags() FlagData {
 		CustomFields: viper.GetStringSlice("custom-fields"),
 		Linked:       viper.GetBool("linked"),
 		NotCommented: viper.GetInt("not-commented"),
+		ClosedWithin: viper.GetInt("closed-within"),
 	}
 }

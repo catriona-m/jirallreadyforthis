@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/go-github/v52/github"
 	c "github.com/gookit/color"
 	"github.com/jirallreadyforthis/lib/gh"
 	"github.com/jirallreadyforthis/lib/jira"
@@ -21,6 +22,7 @@ type List struct {
 	Linked       bool
 	GHToken      string
 	NotCommented int
+	ClosedWithin int
 }
 
 func (l List) ListJiraTickets() error {
@@ -83,8 +85,23 @@ func (l List) ListJiraTickets() error {
 			ghClosedOrMerged := make([]string, 0)
 			githubLinks = removeDuplicates(githubLinks)
 			for _, link := range githubLinks {
-				if s := l.closedOrMerged(link); s != "" {
-					ghClosedOrMerged = append(ghClosedOrMerged, s)
+				ghIssue, repo := l.getIssueAndRepoFromLink(link)
+				if ghIssue != nil && repo != nil {
+
+					closed, err := closedOrMergedWithin(ghIssue, l.ClosedWithin)
+					if err != nil {
+						return err
+					}
+					if !closed {
+						continue
+					}
+					s, err := l.closedOrMerged(ghIssue, *repo)
+					if err != nil {
+						return err
+					}
+					if s != "" {
+						ghClosedOrMerged = append(ghClosedOrMerged, s)
+					}
 				}
 			}
 
@@ -93,7 +110,7 @@ func (l List) ListJiraTickets() error {
 			ghClosedOrMerged = removeDuplicates(ghClosedOrMerged)
 			if len(ghClosedOrMerged) > 0 {
 				count++
-				c.Printf("\n\n<green>%s\t%s\t%s</>\n", l.getJiraHtmlUrl(issue.Key), issue.Fields.Summary, date)
+				c.Printf("\n\n<green>%s\t%s\t%s</>\n", date, l.getJiraHtmlUrl(issue.Key), issue.Fields.Summary)
 				c.Printf("\t%s", strings.Join(ghClosedOrMerged, "\t\n\t"))
 			}
 		} else {
@@ -105,71 +122,37 @@ func (l List) ListJiraTickets() error {
 	return nil
 }
 
-func (l List) closedOrMerged(link string) string {
+func (l List) closedOrMerged(issue *github.Issue, repo gh.Repo) (string, error) {
 	closedOrMergedString := ""
 
-	re := regexp.MustCompile("https://github\\.com/(?P<repoName>\\S+/\\S+)/(?:pull|issues)/(?P<number>\\d+)")
-	matches := re.FindAllStringSubmatch(link, -1)
-
-	repoName := ""
-	number := ""
-	if len(matches) > 0 {
-		repoIndex := re.SubexpIndex("repoName")
-		repoName = matches[0][repoIndex]
-		numberIndex := re.SubexpIndex("number")
-		number = matches[0][numberIndex]
-	}
-
-	if repoName != "" && number != "" {
-
-		repo := gh.NewRepo(repoName, l.GHToken)
-		i, _ := strconv.Atoi(number)
-
-		if strings.Contains(link, "issues") {
-			issue, err := repo.GetIssue(i)
+	if issue != nil {
+		if issue.IsPullRequest() {
+			merged, err := repo.PullRequestIsMerged(*issue.Number)
 			if err != nil {
-				c.Errorf("\n Error getting issue from extracted link %s: %v\n", link, err)
-				return closedOrMergedString
-			}
-
-			if issue != nil {
-				if issue.IsPullRequest() {
-					merged, err := repo.PullRequestIsMerged(i)
-					if err != nil {
-						c.Errorf("Error checking if pr is merged using extracted link %s: %v\n", link, err)
-						return closedOrMergedString
-					}
-
-					if merged {
-						closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
-						closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
-					}
-				} else if issue.GetState() == "closed" {
-					closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
-					closedOrMergedString = c.Sprintf("<lightRed>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
-				}
-			}
-
-		} else if strings.Contains(link, "pull") {
-			merged, err := repo.PullRequestIsMerged(i)
-			if err != nil {
-				c.Errorf("Error checking if pr is merged using extracted link %s: %v\n", link, err)
-				return closedOrMergedString
-			}
-
-			pr, err := repo.GetPullRequest(i)
-			if err != nil {
-				c.Errorf("Error getting pr using extracted link %s: %v\n", link, err)
-				return closedOrMergedString
+				c.Errorf("Error checking if pr %d is merged %s: %v\n", *issue.Number, err)
+				return closedOrMergedString, nil
 			}
 
 			if merged {
-				closedDate := strings.Split(pr.GetClosedAt().String(), " ")[0]
-				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", closedDate, pr.GetHTMLURL(), pr.GetTitle())
+				closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
+				if l.ClosedWithin > 0 {
+					closed, err := closedOrMergedWithin(issue, l.ClosedWithin)
+					if err != nil {
+						return "", err
+					}
+					if !closed {
+						return closedOrMergedString, nil
+					}
+				}
+				closedOrMergedString = c.Sprintf("<lightMagenta>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
 			}
+		} else if issue.GetState() == "closed" {
+			closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
+			closedOrMergedString = c.Sprintf("<lightRed>%s\t%s\t%s</>", closedDate, issue.GetHTMLURL(), issue.GetTitle())
 		}
 	}
-	return closedOrMergedString
+
+	return closedOrMergedString, nil
 }
 
 func (l List) getJiraHtmlUrl(issueKey string) string {
@@ -200,4 +183,49 @@ func removeDuplicates(slice []string) []string {
 		}
 	}
 	return list
+}
+
+func closedOrMergedWithin(issue *github.Issue, days int) (bool, error) {
+
+	closedDate := strings.Split(issue.GetClosedAt().String(), " ")[0]
+	parsedDate, err := time.Parse("2006-01-02", closedDate)
+	if err != nil {
+		return false, fmt.Errorf("parsing closed/merged time: %v", err)
+	}
+
+	if parsedDate.After(time.Now().AddDate(0, 0, -days)) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (l List) getIssueAndRepoFromLink(link string) (*github.Issue, *gh.Repo) {
+	re := regexp.MustCompile("https://github\\.com/(?P<repoName>[\\w-]+/[\\w-]+)/(?:pull|issues)/(?P<number>\\d+)")
+	matches := re.FindAllStringSubmatch(link, -1)
+
+	repoName := ""
+	number := ""
+	if len(matches) > 0 {
+		repoIndex := re.SubexpIndex("repoName")
+		repoName = matches[0][repoIndex]
+		numberIndex := re.SubexpIndex("number")
+		number = matches[0][numberIndex]
+	}
+
+	if repoName != "" && number != "" {
+
+		repo := gh.NewRepo(repoName, l.GHToken)
+		i, _ := strconv.Atoi(number)
+
+		if strings.Contains(link, "issues") {
+			issue, err := repo.GetIssue(i)
+			if err != nil {
+				c.Errorf("\n Error getting issue from extracted link %s: %v\n", link, err)
+				return nil, nil
+			}
+			return issue, &repo
+		}
+	}
+	return nil, nil
 }
