@@ -76,6 +76,8 @@ func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
 
 	foundWorkflow := false
 	currentStatus := strings.ToLower(issue.Fields.Status.Name)
+	originalStatus := currentStatus
+	transitioned := false
 	for _, transition := range s.Transitions {
 
 		workflow := strings.Split(transition, ";")
@@ -84,7 +86,7 @@ func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
 			if currentStatus == strings.ToLower(status) {
 				foundWorkflow = true
 				if len(workflow) >= i+2 {
-					transitioned := false
+					transitioned = false
 
 					// get a list of status transitions that are currently possible for this issue and check them
 					// against the next transition name in the input list
@@ -123,6 +125,10 @@ func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
 		if foundWorkflow {
 			break
 		}
+	}
+
+	if transitioned {
+		c.Info.Sprintf("Transitioned issue %s from %s to %s", issue.Key, originalStatus, currentStatus)
 	}
 
 	return nil

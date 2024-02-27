@@ -34,9 +34,7 @@ func (s SprintAdd) AddIssuesToSprint() error {
 				return err
 			}
 			issueIds = append(issueIds, issueId)
-			if s.DryRun {
-				fmt.Printf("adding issue (key %s id %s) to sprint (id %d)\n", issueKey, issueId, s.SprintId)
-			}
+			fmt.Printf("adding issue (key %s id %s) to sprint (id %d)\n", issueKey, issueId, s.SprintId)
 			count++
 		}
 	} else if s.Jql != "" {
@@ -47,9 +45,8 @@ func (s SprintAdd) AddIssuesToSprint() error {
 
 		for _, issue := range issues {
 			issueIds = append(issueIds, issue.ID)
-			if s.DryRun {
-				fmt.Printf("adding issue (key %s id %s) to sprint (id %d)\n", issue.Key, issue.ID, s.SprintId)
-			}
+			fmt.Printf("adding issue (key %s id %s) to sprint (id %d)\n", issue.Key, issue.ID, s.SprintId)
+
 			count++
 		}
 
