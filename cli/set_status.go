@@ -19,6 +19,7 @@ type SetStatus struct {
 	DryRun      bool
 	Transitions []string
 	Debug       bool
+	CheckLog    bool
 }
 
 func (s SetStatus) SetStatus() error {
@@ -38,6 +39,16 @@ func (s SetStatus) SetStatus() error {
 			if s.DryRun {
 				fmt.Printf("setting issue (key %s id %s) to new status\n", issueKey, issue.ID)
 			} else {
+				if s.CheckLog {
+					transitions := strings.Split(s.Transitions[0], ",")
+					// status to transition to
+					status := transitions[len(transitions)-1]
+
+					// if the status has recently changed from the status we are aiming to transition to we should avoid reverting this back
+					if issueIsRecentlyTransitioned(issue.ID, status, p) {
+						continue
+					}
+				}
 				err = s.transitionIssue(*issue, p)
 				if err != nil {
 					return err
@@ -55,6 +66,16 @@ func (s SetStatus) SetStatus() error {
 			if s.DryRun {
 				fmt.Printf("setting issue (key %s id %s) to new status\n", issue.Key, issue.ID)
 			} else {
+				if s.CheckLog {
+					transitions := strings.Split(s.Transitions[0], ",")
+					// status to transition to
+					status := transitions[len(transitions)-1]
+
+					// if the status has recently changed from the status we are aiming to transition to we should avoid reverting this back
+					if issueIsRecentlyTransitioned(issue.ID, status, p) {
+						continue
+					}
+				}
 				err = s.transitionIssue(issue, p)
 				if err != nil {
 					return err
@@ -78,8 +99,8 @@ func (s SetStatus) transitionIssue(issue j.Issue, p jira.Project) error {
 	currentStatus := strings.ToLower(issue.Fields.Status.Name)
 	originalStatus := currentStatus
 	transitioned := false
-	for _, transition := range s.Transitions {
 
+	for _, transition := range s.Transitions {
 		workflow := strings.Split(transition, ";")
 		for i, status := range workflow {
 			// find where the issue is in the chain and keep transitioning to the next status until we get to the end of the workflow
@@ -145,4 +166,35 @@ func getIssueFromKey(key string, p jira.Project) (*j.Issue, error) {
 	}
 
 	return &issues[0], nil
+}
+
+func issueIsRecentlyTransitioned(issueId string, status string, p jira.Project) bool {
+
+	issue, err := p.GetIssueWithChangeLog(issueId)
+	if err != nil {
+		c.Errorf("retrieving issueId %s with changelog", issueId)
+		return false
+	}
+
+	if issue != nil {
+		if changelog := issue.Changelog; changelog != nil {
+			if histories := changelog.Histories; histories != nil {
+				for _, history := range histories {
+					if items := history.Items; items != nil {
+						// check only the most recent changelog entry
+						if len(items) > 0 {
+							if items[0].Field == "status" {
+								if strings.ToLower(items[0].FromString) == strings.ToLower(status) {
+									c.Warn.Sprintf("NOT updating issue %s as it was updated from status %q to %q on %s", issue.Key, items[0].FromString, items[0].ToString, history.Created)
+									return true
+								}
+							}
+						}
+					}
+					return false
+				}
+			}
+		}
+	}
+	return false
 }

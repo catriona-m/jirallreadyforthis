@@ -60,6 +60,7 @@ func Make() (*cobra.Command, error) {
 				IssueKeys:   f.IssueKeys,
 				DryRun:      f.DryRun,
 				Transitions: f.Transitions,
+				CheckLog:    f.CheckLog,
 			}
 			err := s.SetStatus()
 			if err != nil {
@@ -86,6 +87,7 @@ func Make() (*cobra.Command, error) {
 				SprintId:  f.SprintId,
 				IssueKeys: f.IssueKeys,
 				DryRun:    f.DryRun,
+				CheckLog:  f.CheckLog,
 			}
 
 			err := s.AddIssuesToSprint()

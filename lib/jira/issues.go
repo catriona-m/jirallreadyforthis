@@ -53,6 +53,24 @@ func (p Project) GetIssue(issueId string) (*j.Issue, error) {
 	return issue, nil
 }
 
+func (p Project) GetIssueWithChangeLog(issueId string) (*j.Issue, error) {
+	client, err := p.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("creating jira client: %v: ", err)
+	}
+
+	opts := j.GetQueryOptions{
+		Expand: "changelog",
+	}
+
+	issue, _, err := client.Issue.Get(issueId, &opts)
+	if err != nil {
+		return nil, fmt.Errorf("getting jira issue %s: %v: ", issueId, err)
+	}
+
+	return issue, nil
+}
+
 func (p Project) TransitionIssueStatus(issueId string, transitionID string) error {
 	client, err := p.NewClient()
 	if err != nil {

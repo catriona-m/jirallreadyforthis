@@ -16,6 +16,7 @@ type SprintAdd struct {
 	IssueKeys []string
 	SprintId  int
 	DryRun    bool
+	CheckLog  bool
 }
 
 func (s SprintAdd) AddIssuesToSprint() error {
